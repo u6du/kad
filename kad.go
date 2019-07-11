@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"math/bits"
 	"net"
+	"strings"
 
 	"github.com/spaolacci/murmur3"
 )
@@ -61,6 +63,22 @@ func (k *kad) split() bool {
 func (k *kad) Distance(id [32]byte) uint16 {
 	hash := murmur3.Sum32(id[:])
 	return uint16(bits.OnesCount32(k.id ^ hash))
+}
+
+func (k *kad) String() string {
+	b := strings.Builder{}
+	for i := uint16(0); i < k.depth; i++ {
+		b.WriteString(fmt.Sprintf("%d :", i))
+		for _, node := range k.bucket[i] {
+			if node == nil {
+				break
+			}
+			b.WriteString(" ")
+			b.WriteString(node.String())
+		}
+		b.WriteString("\n")
+	}
+	return b.String()
 }
 
 func (k *kad) AddNode(id [32]byte, addr *net.UDPAddr) bool {
