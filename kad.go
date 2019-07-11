@@ -10,21 +10,17 @@ import (
 const MaxDepth = 32
 const BucketSize = 24
 
-type Node struct {
-	addr  *net.UDPAddr
-	depth uint16
-}
-
-type bucket [BucketSize]*Node
+type bucket [BucketSize]*net.UDPAddr
 
 type kad struct {
 	id     uint32
 	bucket [MaxDepth]bucket
 	depth  uint16
+	Node   map[*net.UDPAddr][32]byte
 }
 
-func New(id []byte) *kad {
-	return &kad{id: murmur3.Sum32(id), depth: 0}
+func New(id [32]byte) *kad {
+	return &kad{id: murmur3.Sum32(id[:]), depth: 0}
 }
 
 func (k *kad) depthIsFull(n uint16) bool {
@@ -43,12 +39,12 @@ func (k *kad) split() bool {
 		return false
 	}
 	bucket := k.bucket[kDepth]
-	for _, node := range bucket {
-		if node.depth > kDepth {
-			next[nextPos] = node
+	for _, addr := range bucket {
+		if k.Distance(k.Node[addr]) > kDepth {
+			next[nextPos] = addr
 			nextPos++
 		} else {
-			nowDepth[nowPos] = node
+			nowDepth[nowPos] = addr
 			nowPos++
 		}
 	}
@@ -62,12 +58,12 @@ func (k *kad) split() bool {
 	}
 }
 
-func (k *kad) Distance(id []byte) uint16 {
-	hash := murmur3.Sum32(id)
+func (k *kad) Distance(id [32]byte) uint16 {
+	hash := murmur3.Sum32(id[:])
 	return uint16(bits.OnesCount32(k.id ^ hash))
 }
 
-func (k *kad) AddNode(id []byte, addr *net.UDPAddr) bool {
+func (k *kad) AddNode(id [32]byte, addr *net.UDPAddr) bool {
 	hashDepth := k.Distance(id)
 	depth := hashDepth
 
@@ -86,7 +82,7 @@ func (k *kad) AddNode(id []byte, addr *net.UDPAddr) bool {
 	}
 	for i := range t {
 		if t[i] == nil {
-			t[i] = &Node{addr, hashDepth}
+			t[i] = addr
 			return true
 		}
 	}
