@@ -51,6 +51,7 @@ func (k *kad) split() bool {
 		}
 	}
 	if nextPos > 0 {
+		//TODO 回调获取更多的nowDepth
 		k.bucket[kDepth] = nowDepth
 		k.depth++
 		k.bucket[k.depth] = next
