@@ -7,8 +7,7 @@ import (
 	"strings"
 
 	"github.com/spaolacci/murmur3"
-	"github.com/u6du/trie"
-	triebyte32 "github.com/u6du/trie/byte32"
+	"github.com/u6du/trie/triebyte32"
 )
 
 const MaxDepth = 32
@@ -24,10 +23,13 @@ type Kad struct {
 }
 
 func New(id [32]byte) *Kad {
-	return &Kad{id: murmur3.Sum32(id[:]), Trie: trie.NewTrie()}
+	return &Kad{id: murmur3.Sum32(id[:]), Trie: triebyte32.NewTrie()}
 }
 
 func (k *Kad) AddNode(id [32]byte, addr *net.UDPAddr) bool {
+	if k.Trie.Has(id) {
+		return false
+	}
 
 	depth := k.Distance(id)
 
