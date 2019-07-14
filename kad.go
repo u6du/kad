@@ -1,13 +1,12 @@
-package kad
+package main
 
 import (
 	"fmt"
 	"math/bits"
 	"net"
 	"strings"
-
-	"github.com/u6du/highwayhash"
 	"github.com/u6du/radix/radixset"
+	"github.com/spaolacci/murmur3"
 )
 
 const MaxDepth = 32
@@ -17,17 +16,17 @@ type Addr [18]byte
 type Bucket [BucketSize]*net.UDPAddr
 
 type Kad struct {
-	id     [32]byte
+	id     uint32
 	bucket [MaxDepth]Bucket
 	Tree   *radixset.Tree
 }
 
 func New(id [32]byte) *Kad {
-	return &Kad{id: highwayhash.Zero.Sum(id[:]), Tree: radixset.New()}
+	return &Kad{id: murmur3.Sum32(id[:]), Tree: radixset.New()}
 }
 
 func (k *Kad) AddNode(id [32]byte, addr *net.UDPAddr) bool {
-	if k.Tree.Get(id) {
+	if k.Tree.Has(id) {
 		return false
 	}
 
@@ -52,7 +51,7 @@ func (k *Kad) depthIsFull(n uint16) bool {
 }
 
 func (k *Kad) Distance(id [32]byte) uint16 {
-	hash := highwayhash.Zero.Sum32(id[:])
+	hash := murmur3.Sum32(id[:])
 	return uint16(bits.OnesCount32(k.id ^ hash))
 }
 
