@@ -1,18 +1,18 @@
-package main
+package kad
 
 import (
 	"fmt"
 	"math/bits"
 	"net"
 	"strings"
-	"github.com/u6du/radix/radixset"
+
 	"github.com/spaolacci/murmur3"
+	"github.com/u6du/radix/radixset"
 )
 
 const MaxDepth = 32
 const BucketSize = 36
 
-type Addr [18]byte
 type Bucket [BucketSize]*net.UDPAddr
 
 type Kad struct {
@@ -26,7 +26,7 @@ func New(id [32]byte) *Kad {
 }
 
 func (k *Kad) AddNode(id [32]byte, addr *net.UDPAddr) bool {
-	if k.Tree.Get(id) {
+	if k.Tree.Get(id[:]) {
 		return false
 	}
 
