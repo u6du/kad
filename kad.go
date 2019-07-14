@@ -17,7 +17,7 @@ type Addr [18]byte
 type Bucket [BucketSize]*net.UDPAddr
 
 type Kad struct {
-	id     uint32
+	id     [32]byte
 	bucket [MaxDepth]Bucket
 	Tree   *radixset.Tree
 }
