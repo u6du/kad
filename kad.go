@@ -34,12 +34,10 @@ func (k *Kad) AddNode(id [32]byte, addr *net.UDPAddr) bool {
 
 	t := k.bucket[depth]
 
-	if t[BucketSize-1] == nil {
-		for i := range t {
-			if t[i] == nil {
-				t[i] = addr
-				return true
-			}
+	for i := range t {
+		if t[i] == nil {
+			t[i] = addr
+			return true
 		}
 	}
 
