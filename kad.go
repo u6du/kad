@@ -26,7 +26,7 @@ func New(id [32]byte) *Kad {
 }
 
 func (k *Kad) AddNode(id [32]byte, addr *net.UDPAddr) bool {
-	if k.Tree.Has(id) {
+	if k.Tree.Get(id) {
 		return false
 	}
 
