@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/spaolacci/murmur3"
-	"github.com/u6du/radix/radixset"
+	"github.com/u6du/radix/radixmapudpaddr"
 )
 
 const MaxDepth = 32
@@ -15,20 +15,31 @@ const BucketSize = 36
 
 type Bucket [BucketSize]*net.UDPAddr
 
+type Addr struct {
+	secret [32]byte
+	id [32]byte
+}
+
 type Kad struct {
 	id     uint32
 	bucket [MaxDepth]Bucket
-	Tree   *radixset.Tree
+	Addr map[*net.UDPAddr]Addr
+	Ip *radixmapudpaddr.Tree
 }
 
 func New(id [32]byte) *Kad {
-	return &Kad{id: murmur3.Sum32(id[:]), Tree: radixset.New()}
+	return &Kad{id: murmur3.Sum32(id[:]), Addr: make(map[*net.UDPAddr]Addr), Ip:radixmapudpaddr.New()}
 }
 
-func (k *Kad) AddNode(id [32]byte, addr *net.UDPAddr) bool {
-	if k.Tree.Get(id[:]) {
+// Tree通过addr*的byte映射到 secret，通过id映射到addr*
+
+func (k *Kad) AddNode(id,secret [32]byte, addr *net.UDPAddr) bool {
+	/*
+	preaddr,ok := k.Id.Get(id[:])
+	if k.Id.Get(id[:]) {
 		return false
 	}
+	*/
 
 	depth := k.Distance(id)
 
