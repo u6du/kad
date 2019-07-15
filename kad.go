@@ -74,17 +74,23 @@ func (k *Kad) Distance(id [32]byte) uint16 {
 }
 
 func (k *Kad) String() string {
-	b := strings.Builder{}
+	out := strings.Builder{}
 	for i := uint16(0); i < MaxDepth; i++ {
-		b.WriteString(fmt.Sprintf("%d :", i))
+		b := strings.Builder{}
+
 		for _, node := range k.bucket[i] {
 			if node == nil {
 				break
 			}
 			b.WriteString(" ")
-			b.WriteString(node.String())
+			b.WriteString(node.Udp.String())
 		}
-		b.WriteString("\n")
+		s := b.String()
+		if len(s) > 0{
+			out.WriteString(fmt.Sprintf("%d :", i))
+			out.WriteString(s)
+			out.WriteString("\n")
+		}
 	}
-	return b.String()
+	return out.String()
 }
