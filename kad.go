@@ -134,9 +134,6 @@ func (k *Kad) String() string {
 			out.WriteString("\n")
 		}
 	}
-	if out.Len() == 0 {
-		return ""
-	}
 	return out.String()
 }
 
