@@ -21,6 +21,9 @@ https://zhuanlan.zhihu.com/p/40286711
 
 Kademlia：基于异或度量的点对点信息系统
 http://t.cn/AipJQv3m
+
+Kademlia2007
+http://t.cn/AiWQWxWY
 */
 
 type Kad struct {
