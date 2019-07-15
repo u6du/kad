@@ -145,8 +145,19 @@ func (k *Kad) bucketN(id [32]byte) int {
 	return d
 }
 
-func (k *Kad) LookUp(id [32]byte) []*addr.Addr {
-	return k.bucket[k.bucketN(id)]
+func (k *Kad) LookUp(id [32]byte) (li []*addr.Addr) {
+	d := k.Distance(id)
+	length := len(k.bucket) - 1
+	if d <= length {
+		return k.bucket[d]
+	}
+	b := k.bucket[d]
+	for i := range b {
+		if Distance(b[i].Id, id) <= d {
+			li = append(li, b[i])
+		}
+	}
+	return
 }
 
 func Distance(idA [32]byte, idB [32]byte) int {
