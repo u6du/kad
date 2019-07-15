@@ -13,7 +13,7 @@ func TestKad_Add(t *testing.T) {
 	kad := New(id)
 	t.Logf("kad\n%s", kad)
 
-	for i := 0; i < 256; i++ {
+	for i := 0; i < 99999; i++ {
 		id2 := [32]byte{}
 		rand.Read(id2[:])
 		secret := [32]byte{}
@@ -21,7 +21,7 @@ func TestKad_Add(t *testing.T) {
 		ip := make([]byte, 4)
 		rand.Read(ip)
 		kad.Add(id2, secret, &net.UDPAddr{IP: ip, Port: 3232})
-		t.Logf("kad\n%s", kad)
 	}
+	t.Logf("kad\n%s", kad)
 
 }

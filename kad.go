@@ -108,7 +108,7 @@ func (k *Kad) Add(id, secret [32]byte, udp *net.UDPAddr) bool {
 }
 
 func (k *Kad) Distance(id [32]byte) int {
-	return 31 - bits.OnesCount32(k.id^hash(id))
+	return bits.OnesCount32(k.id ^ hash(id))
 }
 
 func (k *Kad) String() string {
