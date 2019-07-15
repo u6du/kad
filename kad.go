@@ -34,7 +34,7 @@ func New(id [32]byte) *Kad {
 	}
 }
 
-const SplitLen = 63
+const SplitLen = 32
 
 func (k *Kad) add(now int, a *addr.Addr) {
 
