@@ -14,11 +14,10 @@ import (
 	"github.com/u6du/kad/radixmapaddr"
 )
 
-const MaxDepth = 32
 
 type Kad struct {
 	id     uint32
-	bucket [MaxDepth][]*addr.Addr
+	bucket [][]*addr.Addr
 	Ip radixmapaddr.Tree
 }
 
@@ -75,7 +74,7 @@ func (k *Kad) Distance(id [32]byte) uint16 {
 
 func (k *Kad) String() string {
 	out := strings.Builder{}
-	for i := uint16(0); i < MaxDepth; i++ {
+	for i := uint16(0); i < 32; i++ {
 		b := strings.Builder{}
 
 		for _, node := range k.bucket[i] {
@@ -93,4 +92,9 @@ func (k *Kad) String() string {
 		}
 	}
 	return out.String()
+}
+
+
+func (k *Kad) Len() uint{
+	return k.Ip.Len()
 }
