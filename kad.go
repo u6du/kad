@@ -15,8 +15,13 @@ import (
 	"github.com/u6du/kad/radixmapaddr"
 )
 
-// P2P 网络核心技术：Kademlia 协议
-// https://zhuanlan.zhihu.com/p/40286711
+/*
+P2P 网络核心技术：Kademlia 协议
+https://zhuanlan.zhihu.com/p/40286711
+
+Kademlia：基于异或度量的点对点信息系统
+http://t.cn/AipJQv3m
+*/
 
 type Kad struct {
 	id     uint32
