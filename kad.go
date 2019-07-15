@@ -22,38 +22,42 @@ type Kad struct {
 	Ip radixmapaddr.Tree
 }
 
+func hash(id [32]byte) uint32{
+	return murmur3.Sum32(id[:])
+}
+
 func New(id [32]byte) *Kad {
 	return &Kad{
-		id: murmur3.Sum32(id[:]),
+		id: hash(id),
 		Ip:*radixmapaddr.New(),
 	}
 }
 
 // Tree通过addr*的byte映射到 secret，通过id映射到addr*
 
-func (k *Kad) AddNode(id,secret [32]byte, udp *net.UDPAddr) bool {
+func (k *Kad) Add(id,secret [32]byte, udp *net.UDPAddr) bool {
 	addrByte := udpaddr.Byte(udp)
 	addrExist, exist := k.Ip.Get(addrByte)
-	if exist{
+	if exist {
 		addrExist.Secret = secret
-		if bytes.Compare(addrExist.Id[:], id[:])!=0{
+		if bytes.Compare(addrExist.Id[:], id[:]) != 0 {
 			old := k.Distance(addrExist.Id)
 			addrExist.Id = id
 			now := k.Distance(id)
-			if old!=now{
+			if old != now {
 				bucketOld := k.bucket[old]
-				for i := range bucketOld{
-					if addrExist == bucketOld[i]{
-						k.bucket[old]=append(bucketOld[:i], bucketOld[i+1:]...)
+				for i := range bucketOld {
+					if addrExist == bucketOld[i] {
+						k.bucket[old] = append(bucketOld[:i], bucketOld[i+1:]...)
 					}
 				}
-				k.bucket[now] = append(k.bucket[now],addrExist)
+				k.bucket[now] = append(k.bucket[now], addrExist)
 			}
 		}
 		return false
-	}else {
+	} else {
 		now := k.Distance(id)
-		p:=&addr.Addr{
+		p := &addr.Addr{
 			Secret: secret,
 			Id:     id,
 			Udp:    udp,
@@ -65,13 +69,8 @@ func (k *Kad) AddNode(id,secret [32]byte, udp *net.UDPAddr) bool {
 
 }
 
-func (k *Kad) depthIsFull(n uint16) bool {
-	return k.bucket[n][BucketSize-1] != nil
-}
-
 func (k *Kad) Distance(id [32]byte) uint16 {
-	hash := murmur3.Sum32(id[:])
-	return uint16(bits.OnesCount32(k.id ^ hash))
+	return uint16(bits.OnesCount32(k.id ^ hash(id)))
 }
 
 func (k *Kad) String() string {
