@@ -107,6 +107,15 @@ func (k *Kad) Add(id, secret [32]byte, udp *net.UDPAddr) bool {
 	}
 }
 
+func (k *Kad) Near(id [32]byte) []*addr.Addr {
+	d := k.Distance(id)
+	length := len(k.bucket) - 1
+	if d > length {
+		d = length
+	}
+	return k.bucket[d]
+}
+
 func (k *Kad) Distance(id [32]byte) int {
 	return bits.OnesCount32(k.id ^ hash(id))
 }
