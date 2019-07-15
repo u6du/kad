@@ -43,6 +43,7 @@ func (k *Kad) add(now int, a *addr.Addr) {
 		b := k.bucket[length]
 		bLen := len(b)
 		if bLen >= SplitLen {
+
 			next := []*addr.Addr{a}
 			var same []*addr.Addr
 			for i := 0; i < bLen; i++ {
