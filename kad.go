@@ -58,7 +58,7 @@ func (k *Kad) add(now int, a *addr.Addr) {
 			next := []*addr.Addr{a}
 			var same []*addr.Addr
 			for i := 0; i < bLen; i++ {
-				if k.Distance(b[i].Id) > length {
+				if k.Similarity(b[i].Id) > length {
 					next = append(next, b[i])
 				} else {
 					same = append(same, b[i])
@@ -111,9 +111,9 @@ func (k *Kad) Add(id, secret [32]byte, udp *net.UDPAddr) bool {
 	if exist {
 		addrPoint.Secret = secret
 		if bytes.Compare(addrPoint.Id[:], id[:]) != 0 {
-			old := k.Distance(addrPoint.Id)
+			old := k.Similarity(addrPoint.Id)
 			addrPoint.Id = id
-			now := k.Distance(id)
+			now := k.Similarity(id)
 			if old != now {
 				length := len(k.bucket) - 1
 				if old > length {
@@ -130,14 +130,14 @@ func (k *Kad) Add(id, secret [32]byte, udp *net.UDPAddr) bool {
 			Id:     id,
 			Udp:    udp,
 		}
-		k.add(k.Distance(id), p)
+		k.add(k.Similarity(id), p)
 		k.Ip.Add(addrByte, p)
 		return true
 	}
 }
 
 func (k *Kad) bucketN(id [32]byte) int {
-	d := k.Distance(id)
+	d := k.Similarity(id)
 	length := len(k.bucket) - 1
 	if d > length {
 		d = length
@@ -146,25 +146,25 @@ func (k *Kad) bucketN(id [32]byte) int {
 }
 
 func (k *Kad) LookUp(id [32]byte) (li []*addr.Addr) {
-	d := k.Distance(id)
+	d := k.Similarity(id)
 	length := len(k.bucket) - 1
 	if d <= length {
 		return k.bucket[d]
 	}
 	b := k.bucket[d]
 	for i := range b {
-		if Distance(b[i].Id, id) <= d {
+		if Similarity(b[i].Id, id) >= d {
 			li = append(li, b[i])
 		}
 	}
 	return
 }
 
-func Distance(idA [32]byte, idB [32]byte) int {
+func Similarity(idA [32]byte, idB [32]byte) int {
 	return bits.LeadingZeros32(hash(idA) ^ hash(idB))
 }
 
-func (k *Kad) Distance(id [32]byte) int {
+func (k *Kad) Similarity(id [32]byte) int {
 	return bits.LeadingZeros32(k.id ^ hash(id))
 }
 
