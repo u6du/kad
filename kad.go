@@ -149,6 +149,10 @@ func (k *Kad) LookUp(id [32]byte) []*addr.Addr {
 	return k.bucket[k.bucketN(id)]
 }
 
+func Distance(idA [32]byte, idB [32]byte) int {
+	return bits.LeadingZeros32(hash(idA) ^ hash(idB))
+}
+
 func (k *Kad) Distance(id [32]byte) int {
 	return bits.LeadingZeros32(k.id ^ hash(id))
 }
