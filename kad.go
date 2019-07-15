@@ -6,6 +6,7 @@ import (
 	"math/bits"
 	"net"
 	"strings"
+	"sync"
 
 	"github.com/spaolacci/murmur3"
 	"github.com/u6du/udpaddr"
@@ -14,27 +15,41 @@ import (
 	"github.com/u6du/kad/radixmapaddr"
 )
 
-
 type Kad struct {
 	id     uint32
 	bucket [][]*addr.Addr
-	Ip radixmapaddr.Tree
+	Ip     radixmapaddr.Tree
+	lock   sync.RWMutex
 }
 
-func hash(id [32]byte) uint32{
+func hash(id [32]byte) uint32 {
 	return murmur3.Sum32(id[:])
 }
 
 func New(id [32]byte) *Kad {
 	return &Kad{
 		id: hash(id),
-		Ip:*radixmapaddr.New(),
+		Ip: *radixmapaddr.New(),
 	}
+}
+
+const SplitLen = 63
+
+func (k *Kad) add(now int, addr *addr.Addr) {
+	length := len(k.bucket) - 1
+	if now > length {
+		if len(k.bucket) > SplitLen {
+
+		} else {
+			now = length
+		}
+	}
+	k.bucket[now] = append(k.bucket[now], addr)
 }
 
 // Tree通过addr*的byte映射到 secret，通过id映射到addr*
 
-func (k *Kad) Add(id,secret [32]byte, udp *net.UDPAddr) bool {
+func (k *Kad) Add(id, secret [32]byte, udp *net.UDPAddr) bool {
 	addrByte := udpaddr.Byte(udp)
 	addrExist, exist := k.Ip.Get(addrByte)
 	if exist {
@@ -55,26 +70,25 @@ func (k *Kad) Add(id,secret [32]byte, udp *net.UDPAddr) bool {
 		}
 		return false
 	} else {
-		now := k.Distance(id)
 		p := &addr.Addr{
 			Secret: secret,
 			Id:     id,
 			Udp:    udp,
 		}
-		k.bucket[now] = append(k.bucket[now], p)
+		k.add(k.Distance(id), p)
 		k.Ip.Add(addrByte, p)
 		return true
 	}
 
 }
 
-func (k *Kad) Distance(id [32]byte) uint16 {
-	return uint16(bits.OnesCount32(k.id ^ hash(id)))
+func (k *Kad) Distance(id [32]byte) int {
+	return 31 - bits.OnesCount32(k.id^hash(id))
 }
 
 func (k *Kad) String() string {
 	out := strings.Builder{}
-	for i := uint16(0); i < 32; i++ {
+	for i := 0; i < len(k.bucket); i++ {
 		b := strings.Builder{}
 
 		for _, node := range k.bucket[i] {
@@ -85,7 +99,7 @@ func (k *Kad) String() string {
 			b.WriteString(node.Udp.String())
 		}
 		s := b.String()
-		if len(s) > 0{
+		if len(s) > 0 {
 			out.WriteString(fmt.Sprintf("%d :", i))
 			out.WriteString(s)
 			out.WriteString("\n")
@@ -94,7 +108,6 @@ func (k *Kad) String() string {
 	return out.String()
 }
 
-
-func (k *Kad) Len() uint{
+func (k *Kad) Len() uint {
 	return k.Ip.Len()
 }
