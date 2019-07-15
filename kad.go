@@ -15,6 +15,9 @@ import (
 	"github.com/u6du/kad/radixmapaddr"
 )
 
+// P2P 网络核心技术：Kademlia 协议
+// https://zhuanlan.zhihu.com/p/40286711
+
 type Kad struct {
 	id     uint32
 	bucket [][]*addr.Addr
@@ -134,12 +137,12 @@ func (k *Kad) bucketN(id [32]byte) int {
 	return d
 }
 
-func (k *Kad) Bucket(id [32]byte) []*addr.Addr {
+func (k *Kad) LookUp(id [32]byte) []*addr.Addr {
 	return k.bucket[k.bucketN(id)]
 }
 
 func (k *Kad) Distance(id [32]byte) int {
-	return bits.OnesCount32(k.id ^ hash(id))
+	return bits.LeadingZeros32(k.id ^ hash(id))
 }
 
 func (k *Kad) String() string {
