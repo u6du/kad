@@ -105,7 +105,6 @@ func (k *Kad) Add(id, secret [32]byte, udp *net.UDPAddr) bool {
 		k.Ip.Add(addrByte, p)
 		return true
 	}
-
 }
 
 func (k *Kad) Distance(id [32]byte) int {
