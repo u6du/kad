@@ -25,7 +25,7 @@ func TestKad_Add(t *testing.T) {
 	t.Logf("kad\n%s", kad)
 	rand.Read(id[:])
 
-	near := kad.Near(id)
+	near := kad.Bucket(id)
 	for i := range near {
 		addr := near[i]
 		t.Logf("%d %s", i, addr.Udp.String())
