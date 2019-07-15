@@ -66,6 +66,29 @@ func (k *Kad) add(now int, a *addr.Addr) {
 	}
 }
 
+func (k *Kad) Delete(udp *net.UDPAddr) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+
+	addrByte := udpaddr.Byte(udp)
+
+	addr, ok := k.Ip.Get(addrByte)
+	if ok {
+		k.pop(k.bucketN(addr.Id), addr)
+		k.Ip.Delete(addrByte)
+	}
+}
+
+func (k *Kad) pop(n int, addr *addr.Addr) {
+	bucket := k.bucket[n]
+	for i := range bucket {
+		if addr == bucket[i] {
+			k.bucket[n] = append(bucket[:i], bucket[i+1:]...)
+			break
+		}
+	}
+}
+
 // Tree通过addr*的byte映射到 secret，通过id映射到addr*
 
 func (k *Kad) Add(id, secret [32]byte, udp *net.UDPAddr) bool {
@@ -73,25 +96,20 @@ func (k *Kad) Add(id, secret [32]byte, udp *net.UDPAddr) bool {
 	defer k.lock.Unlock()
 
 	addrByte := udpaddr.Byte(udp)
-	addrExist, exist := k.Ip.Get(addrByte)
+	addrPoint, exist := k.Ip.Get(addrByte)
 	if exist {
-		addrExist.Secret = secret
-		if bytes.Compare(addrExist.Id[:], id[:]) != 0 {
-			old := k.Distance(addrExist.Id)
-			addrExist.Id = id
+		addrPoint.Secret = secret
+		if bytes.Compare(addrPoint.Id[:], id[:]) != 0 {
+			old := k.Distance(addrPoint.Id)
+			addrPoint.Id = id
 			now := k.Distance(id)
 			if old != now {
 				length := len(k.bucket) - 1
 				if old > length {
 					old = length
 				}
-				bucketOld := k.bucket[old]
-				for i := range bucketOld {
-					if addrExist == bucketOld[i] {
-						k.bucket[old] = append(bucketOld[:i], bucketOld[i+1:]...)
-					}
-				}
-				k.add(now, addrExist)
+				k.pop(old, addrPoint)
+				k.add(now, addrPoint)
 			}
 		}
 		return false
@@ -107,13 +125,17 @@ func (k *Kad) Add(id, secret [32]byte, udp *net.UDPAddr) bool {
 	}
 }
 
-func (k *Kad) Near(id [32]byte) []*addr.Addr {
+func (k *Kad) bucketN(id [32]byte) int {
 	d := k.Distance(id)
 	length := len(k.bucket) - 1
 	if d > length {
 		d = length
 	}
-	return k.bucket[d]
+	return d
+}
+
+func (k *Kad) Bucket(id [32]byte) []*addr.Addr {
+	return k.bucket[k.bucketN(id)]
 }
 
 func (k *Kad) Distance(id [32]byte) int {
