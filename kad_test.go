@@ -13,8 +13,8 @@ func TestKad_Add(t *testing.T) {
 	kad := New(id)
 	t.Logf("kad\n%s", kad)
 
+	var id2 [32]byte
 	for i := 0; i < 9999; i++ {
-		id2 := [32]byte{}
 		rand.Read(id2[:])
 		secret := [32]byte{}
 		rand.Read(secret[:])
@@ -29,12 +29,9 @@ func TestKad_Add(t *testing.T) {
 		t.Error("lookup 自己的id应该是返回空列表（只返回和自己同样相似或者更加相似的节点）")
 	}
 
-	rand.Read(id[:])
-
-	near = kad.LookUp(id)
-	for i := range near {
-		addr := near[i]
-		t.Logf("%d %s", i, addr.Udp.String())
+	near = kad.LookUp(id2)
+	if len(near) <= 0 {
+		t.Error("应该能找到相似的节点")
 	}
 
 	total := 0
