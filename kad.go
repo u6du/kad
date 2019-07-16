@@ -148,14 +148,15 @@ func (k *Kad) bucketN(id [32]byte) int {
 	return d
 }
 
+// 只返回和自己同样相似或者更加相似的节点
 func (k *Kad) LookUp(id [32]byte) (li []*addr.Addr) {
 	d := k.Similarity(id)
 	length := len(k.bucket) - 1
 	if d <= length {
 		return k.bucket[d]
 	}
-	// 当自己是最接近的时候，就不返回了
-	b := k.bucket[d]
+
+	b := k.bucket[length]
 	for i := range b {
 		if Similarity(b[i].Id, id) >= d {
 			li = append(li, b[i])
