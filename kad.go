@@ -47,7 +47,7 @@ func New(id [32]byte) *Kad {
 
 const SplitLen = 64
 
-func (k *Kad) add(now int, a *addr.Addr) {
+func (k *Kad) add(now int, a *addr.Addr) bool {
 
 	length := len(k.bucket) - 1
 	if now > length {
@@ -67,14 +67,16 @@ func (k *Kad) add(now int, a *addr.Addr) {
 			k.bucket[length] = same
 			k.bucket = append(k.bucket, next)
 
-			return
+			return true
 		} else {
 			now = length
 		}
 	}
 	if len(k.bucket[now]) < SplitLen {
 		k.bucket[now] = append(k.bucket[now], a)
+		return true
 	}
+	return false
 }
 
 func (k *Kad) Delete(udp *net.UDPAddr) {
@@ -130,8 +132,9 @@ func (k *Kad) Add(id, secret [32]byte, udp *net.UDPAddr) bool {
 			Id:     id,
 			Udp:    udp,
 		}
-		k.add(k.Similarity(id), p)
-		k.Ip.Add(addrByte, p)
+		if k.add(k.Similarity(id), p) {
+			k.Ip.Add(addrByte, p)
+		}
 		return true
 	}
 }

@@ -30,5 +30,6 @@ func TestKad_Add(t *testing.T) {
 		addr := near[i]
 		t.Logf("%d %s", i, addr.Udp.String())
 	}
+
 	t.Logf("total %d", kad.Len())
 }
