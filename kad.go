@@ -183,9 +183,6 @@ func (k *Kad) String() string {
 		b := strings.Builder{}
 
 		for _, node := range k.bucket[i] {
-			if node == nil {
-				break
-			}
 			b.WriteString(" ")
 			b.WriteString(node.Udp.String())
 		}
