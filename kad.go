@@ -79,6 +79,15 @@ func (k *Kad) add(now int, a *addr.Addr) bool {
 	return false
 }
 
+func (k *Kad) bucketN(id [32]byte) int {
+	d := k.Similarity(id)
+	length := len(k.bucket) - 1
+	if d > length {
+		d = length
+	}
+	return d
+}
+
 func (k *Kad) Delete(udp *net.UDPAddr) {
 	k.lock.Lock()
 	defer k.lock.Unlock()
@@ -137,15 +146,6 @@ func (k *Kad) Add(id, secret [32]byte, udp *net.UDPAddr) bool {
 		}
 		return true
 	}
-}
-
-func (k *Kad) bucketN(id [32]byte) int {
-	d := k.Similarity(id)
-	length := len(k.bucket) - 1
-	if d > length {
-		d = length
-	}
-	return d
 }
 
 // 只返回和自己同样相似或者更加相似的节点

@@ -17,7 +17,8 @@ func TestKad_Add(t *testing.T) {
 	kad := New(id)
 
 	var id2 [32]byte
-	ip := make([]byte, 6)
+	var ip []byte
+
 	for i := 0; i < 9999; i++ {
 		_, err = rand.Read(id2[:])
 		ex.Panic(err)
@@ -26,7 +27,7 @@ func TestKad_Add(t *testing.T) {
 
 		_, err = rand.Read(secret[:])
 		ex.Panic(err)
-
+		ip = make([]byte, 6)
 		_, err = rand.Read(ip)
 		ex.Panic(err)
 
@@ -36,8 +37,16 @@ func TestKad_Add(t *testing.T) {
 
 	total := kad.Len()
 
+	var addr *net.UDPAddr
+
+	for i := range kad.bucket {
+		addr = kad.bucket[i][0].Udp
+		break
+	}
+
 	var id3 [32]byte
-	kad.Add(id3, id3, udpaddr.Addr(ip))
+	_, _ = rand.Read(id3[:])
+	kad.Add(id3, id3, udpaddr.Addr(udpaddr.Byte(addr)))
 	if kad.Len() != total {
 		t.Error("重复添加相同的ip端口，应该不会增加总长度")
 	}
@@ -59,17 +68,18 @@ func TestKad_Add(t *testing.T) {
 	if total != kad.Len() {
 		t.Error("kad len != sum len(kad.bucket)")
 	}
+	for kad.Len() > 0 {
 
-	var addr *net.UDPAddr
-
-	for i := range kad.bucket {
-		addr = kad.bucket[i][0].Udp
-		break
+		for i := range kad.bucket {
+			if len(kad.bucket[i]) > 0 {
+				addr = kad.bucket[i][0].Udp
+				break
+			}
+		}
+		kad.Delete(addr)
+		total--
+		if kad.Len() != total {
+			t.Error("Delete 应该删除一个地址")
+		}
 	}
-	kad.Delete(addr)
-
-	if kad.Len() != uint(total-1) {
-		t.Error("Delete 应该删除一个地址")
-	}
-
 }
